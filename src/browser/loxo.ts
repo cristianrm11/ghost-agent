@@ -18,8 +18,8 @@ function extractSkills(text: string): { required: string[]; niceToHave: string[]
   ];
 
   const lower = text.toLowerCase();
-  const requiredSection = lower.match(/(?:requirements?|qualifications?|must have)[^]*?(?=nice.to.have|preferred|bonus|$)/i)?.[0] ?? lower;
-  const niceSection = lower.match(/(?:nice.to.have|preferred|bonus)[^]*/i)?.[0] ?? '';
+  const requiredSection = lower.match(/(?:requirements?|qualifications?|must have)[^]*?(?=nice[-\s]to[-\s]have|preferred|bonus|$)/i)?.[0] ?? lower;
+  const niceSection = lower.match(/(?:nice[-\s]to[-\s]have|preferred|bonus)[^]*/i)?.[0] ?? '';
 
   const required = KNOWN_SKILLS.filter((s) => requiredSection.includes(s));
   const niceToHave = KNOWN_SKILLS.filter((s) => niceSection.includes(s) && !required.includes(s));
@@ -57,7 +57,6 @@ export async function searchLoxo(
     );
 
     for (const link of uniqueLinks) {
-      if (!matchesKeywords(link.title, '', keywords)) continue;
 
       try {
         await page.goto(link.href, { waitUntil: 'networkidle', timeout: 20_000 });

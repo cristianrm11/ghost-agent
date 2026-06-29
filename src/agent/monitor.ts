@@ -32,15 +32,19 @@ export async function runOnce(config: AgentConfig): Promise<MonitorResult> {
   const newJobs = allJobs.filter((job) => !memory.hasSeen(job.url));
   let queued = 0;
 
+  let scored = 0;
   for (const job of newJobs) {
-    memory.markSeen(job.url);
-
     let fit;
     try {
       fit = await scoreJob(job, config);
+      scored++;
     } catch {
+      // Mark seen only after a successful score so a transient API error
+      // doesn't permanently blacklist the job URL.
       continue;
     }
+
+    memory.markSeen(job.url);
 
     if (fit.score >= search.minFitScore) {
       memory.saveJob(job);
@@ -53,7 +57,7 @@ export async function runOnce(config: AgentConfig): Promise<MonitorResult> {
   return {
     found: allJobs.length,
     newSeen: newJobs.length,
-    scored: newJobs.length,
+    scored,
     queued,
   };
 }

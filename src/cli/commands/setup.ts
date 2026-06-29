@@ -141,11 +141,16 @@ export async function setupCommand(): Promise<void> {
           .split(',')
           .map((s) => s.trim())
           .filter(Boolean)
-          .map((url) => ({
-            ats: 'loxo' as const,
-            url,
-            company: new URL(url).pathname.split('/').filter(Boolean).pop() ?? 'unknown',
-          })),
+          .map((raw) => {
+            const url = raw.startsWith('http') ? raw : `https://${raw}`;
+            let company = 'unknown';
+            try {
+              company = new URL(url).pathname.split('/').filter(Boolean).pop() ?? 'unknown';
+            } catch {
+              // Malformed URL — keep 'unknown' as company name
+            }
+            return { ats: 'loxo' as const, url, company };
+          }),
       ],
     },
   };

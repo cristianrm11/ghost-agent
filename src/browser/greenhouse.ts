@@ -32,8 +32,8 @@ function extractSkills(text: string): { required: string[]; niceToHave: string[]
 
   const lower = text.toLowerCase();
 
-  const requiredSection = lower.match(/(?:requirements?|qualifications?|must have)[^]*?(?=nice.to.have|preferred|bonus|$)/i)?.[0] ?? lower;
-  const niceSection = lower.match(/(?:nice.to.have|preferred|bonus)[^]*/i)?.[0] ?? '';
+  const requiredSection = lower.match(/(?:requirements?|qualifications?|must have)[^]*?(?=nice[-\s]to[-\s]have|preferred|bonus|$)/i)?.[0] ?? lower;
+  const niceSection = lower.match(/(?:nice[-\s]to[-\s]have|preferred|bonus)[^]*/i)?.[0] ?? '';
 
   const required = KNOWN_SKILLS.filter((s) => requiredSection.includes(s));
   const niceToHave = KNOWN_SKILLS.filter((s) => niceSection.includes(s) && !required.includes(s));
@@ -61,6 +61,9 @@ export async function searchGreenhouse(
   if (!res.ok) throw new Error(`Greenhouse API error: ${res.status} for board "${boardToken}"`);
 
   const data = (await res.json()) as GreenhouseResponse;
+  if (!Array.isArray(data.jobs)) {
+    throw new Error(`Greenhouse board "${boardToken}" returned unexpected response shape`);
+  }
   const jobs: JobPosting[] = [];
 
   for (const raw of data.jobs) {

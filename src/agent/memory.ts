@@ -14,17 +14,24 @@ interface Store {
   applications: Record<string, ApplicationRecord>;
 }
 
+const EMPTY_STORE: Store = { seenUrls: {}, jobs: {}, fitResults: {}, applications: {} };
+
 function read(): Store {
   fs.mkdirSync(STORE_DIR, { recursive: true });
-  if (!fs.existsSync(STORE_PATH)) {
-    return { seenUrls: {}, jobs: {}, fitResults: {}, applications: {} };
+  if (!fs.existsSync(STORE_PATH)) return { ...EMPTY_STORE };
+  try {
+    return JSON.parse(fs.readFileSync(STORE_PATH, 'utf8')) as Store;
+  } catch {
+    // Corrupted file — start fresh rather than bricking the CLI.
+    return { ...EMPTY_STORE };
   }
-  return JSON.parse(fs.readFileSync(STORE_PATH, 'utf8')) as Store;
 }
 
 function write(store: Store): void {
   fs.mkdirSync(STORE_DIR, { recursive: true });
-  fs.writeFileSync(STORE_PATH, JSON.stringify(store, null, 2));
+  const tmp = `${STORE_PATH}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(store, null, 2));
+  fs.renameSync(tmp, STORE_PATH);
 }
 
 export const memory = {

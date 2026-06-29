@@ -43,7 +43,11 @@ Scoring guide:
     messages: [{ role: 'user', content: prompt }],
   });
 
-  const text = (message.content[0] as { type: 'text'; text: string }).text.trim();
+  const block = message.content[0];
+  if (!block || block.type !== 'text') {
+    throw new Error(`Unexpected scorer response: content block missing or not text`);
+  }
+  const text = block.text.trim();
 
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error(`Scorer returned non-JSON: ${text.slice(0, 200)}`);

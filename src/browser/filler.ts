@@ -40,11 +40,11 @@ function matchProfileField(
     }
   }
 
-  // Fuzzy: check if label words appear in profile keys
+  // Fuzzy: check if a profile key appears as a substring of any label word
   const words = label.toLowerCase().split(/\s+/);
   for (const word of words) {
     for (const [pattern, getter] of Object.entries(PROFILE_FIELD_MAP)) {
-      if (pattern.includes(word)) {
+      if (word.includes(pattern)) {
         const value = getter(profile);
         if (value) return { value, confidence: 'medium' };
       }
@@ -81,7 +81,13 @@ export async function fillApplication(
     const inputs = await page.$$('input:not([type="hidden"]):not([type="submit"]):not([type="file"]), textarea');
 
     for (const input of inputs) {
-      const tagName = await input.evaluate((el) => el.tagName.toLowerCase());
+      let tagName: string;
+      try {
+        tagName = await input.evaluate((el) => el.tagName.toLowerCase());
+      } catch {
+        // Handle detached from DOM if page re-renders between handle collection and iteration
+        continue;
+      }
       const type = await input.getAttribute('type') ?? 'text';
       if (['checkbox', 'radio', 'button', 'reset'].includes(type)) continue;
 
@@ -168,7 +174,11 @@ export async function fillApplication(
     if (!p.isCancel(doSubmit) && doSubmit) {
       const submitBtn = page.locator('input[type="submit"], button[type="submit"]').first();
       await submitBtn.click();
-      await page.waitForLoadState('networkidle');
+      try {
+        await page.waitForLoadState('networkidle', { timeout: 10_000 });
+      } catch {
+        // Analytics beacons can prevent networkidle — treat as submitted if click succeeded.
+      }
       submitted = true;
       p.log.success('Application submitted.');
     } else {
