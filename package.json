@@ -1,0 +1,28 @@
+{
+  "name": "ghost-agent",
+  "version": "0.1.0",
+  "description": "AI agent that monitors job boards, scores fit, and applies to the right roles",
+  "type": "module",
+  "bin": {
+    "ghost-agent": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "dev": "tsx src/cli/index.ts",
+    "build": "tsc",
+    "watch": "tsx src/cli/index.ts watch",
+    "review": "tsx src/cli/index.ts review",
+    "apply": "tsx src/cli/index.ts apply",
+    "setup": "tsx src/cli/index.ts setup"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
+    "@clack/prompts": "^0.9.0",
+    "playwright": "^1.44.0",
+    "picocolors": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  }
+}
